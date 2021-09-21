@@ -12,6 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BookKeep">
         <activity
+            android:name=".FavoritesActivity"
+            android:exported="true" />
+        <activity
+            android:name=".CurrentlyReadingActivity"
+            android:exported="true" />
+        <activity
+            android:name=".WantToReadActivity"
+            android:exported="true" />
+        <activity
+            android:name=".AlreadyReadBookActivity"
+            android:exported="true" />
+        <activity
             android:name=".BookActivity"
             android:exported="true" />
         <activity

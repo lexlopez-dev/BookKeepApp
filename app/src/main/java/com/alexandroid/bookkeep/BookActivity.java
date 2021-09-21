@@ -4,11 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
 
 public class BookActivity extends AppCompatActivity {
 
@@ -45,10 +49,141 @@ public class BookActivity extends AppCompatActivity {
                 Book incomingBook = Utils.getInstance().getBookById(bookId);
                 if(incomingBook != null) {
                     setData(incomingBook);
+
+                    handleAlreadyRead(incomingBook);
+                    handleWantToReadBooks(incomingBook);
+                    handleCurrentlyReadingBooks(incomingBook);
+                    handleFavoriteBooks(incomingBook);
+
                 }
             }
         }
 
+    }
+
+    private void handleWantToReadBooks(final Book book) {
+        ArrayList<Book> wantToReadBooks = Utils.getInstance().getWantToReadBooks();
+
+        boolean existsInWantToReadBooks = false;
+
+        for (Book b: wantToReadBooks) {
+            if(b.getId() == book.getId()) {
+                existsInWantToReadBooks = true;
+            }
+        }
+
+        if(existsInWantToReadBooks) {
+            btnAddToWantToRead.setEnabled(false);
+        }else {
+            btnAddToWantToRead.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(Utils.getInstance().addToWantToRead(book)) {
+                        Toast.makeText(BookActivity.this, "Book Added", Toast.LENGTH_SHORT).show();
+                        //Below is navigating the user to want to read books activity
+                        Intent intent = new Intent(BookActivity.this, WantToReadActivity.class);
+                        startActivity(intent);
+
+                    }else {
+                        Toast.makeText(BookActivity.this, "Error: Try again", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    private void handleCurrentlyReadingBooks(final Book book) {
+        ArrayList<Book> currentlyReadingBooks = Utils.getInstance().getCurrentlyReadingBooks();
+
+        boolean existsInCurrentlyReadingBooks = false;
+
+        for (Book b: currentlyReadingBooks) {
+            if(b.getId() == book.getId()) {
+                existsInCurrentlyReadingBooks = true;
+            }
+        }
+
+        if(existsInCurrentlyReadingBooks) {
+            btnAddToCurrentlyReading.setEnabled(false);
+        }else {
+            btnAddToCurrentlyReading.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(Utils.getInstance().addToCurrentlyReading(book)) {
+                        Toast.makeText(BookActivity.this, "Book Added", Toast.LENGTH_SHORT).show();
+                        //Below is navigating the user to want to read books activity
+                        Intent intent = new Intent(BookActivity.this, CurrentlyReadingActivity.class);
+                        startActivity(intent);
+
+                    }else {
+                        Toast.makeText(BookActivity.this, "Error: Try again", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    private void handleFavoriteBooks(final Book book) {
+        ArrayList<Book> favoriteBooks = Utils.getInstance().getFavoriteBooks();
+
+        boolean existsInFavoriteBooks = false;
+
+        for (Book b: favoriteBooks) {
+            if(b.getId() == book.getId()) {
+                existsInFavoriteBooks = true;
+            }
+        }
+
+        if(existsInFavoriteBooks) {
+            btnAddToFavorites.setEnabled(false);
+        }else {
+            btnAddToFavorites.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(Utils.getInstance().addToFavoriteBooks(book)) {
+                        Toast.makeText(BookActivity.this, "Book Added", Toast.LENGTH_SHORT).show();
+                        //Below is navigating the user to want to read books activity
+                        Intent intent = new Intent(BookActivity.this, FavoritesActivity.class);
+                        startActivity(intent);
+
+                    }else {
+                        Toast.makeText(BookActivity.this, "Error: Try again", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    //Enable and disable the already read button, and add book to ArrayList of books
+    private void handleAlreadyRead(final Book book) {
+        ArrayList<Book> alreadyReadBooks = Utils.getInstance().getAlreadyReadBooks();
+
+        boolean existsInAlreadyReadBooks = false;
+
+        for (Book b: alreadyReadBooks) {
+            if(b.getId() == book.getId()) {
+                existsInAlreadyReadBooks = true;
+            }
+        }
+
+        if(existsInAlreadyReadBooks) {
+            btnAddToAlreadyRead.setEnabled(false);
+        }else {
+            btnAddToAlreadyRead.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(Utils.getInstance().addToAlreadyRead(book)) {
+                        Toast.makeText(BookActivity.this, "Book Added", Toast.LENGTH_SHORT).show();
+                        //Below is navigating the user to already read books activity
+                        Intent intent = new Intent(BookActivity.this, AlreadyReadBookActivity.class);
+                        startActivity(intent);
+
+                    }else {
+                        Toast.makeText(BookActivity.this, "Error: Try again", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     private void setData(Book book) {
@@ -74,4 +209,5 @@ public class BookActivity extends AppCompatActivity {
 
         bookImage = findViewById(R.id.imgBookCover);
     }
+
 }
