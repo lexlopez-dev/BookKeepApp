@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BookKeep">
         <activity
+            android:name=".WebsiteActivity"
+            android:exported="true" />
+        <activity
             android:name=".FavoritesActivity"
             android:exported="true" />
         <activity

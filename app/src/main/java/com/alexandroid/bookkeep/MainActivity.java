@@ -1,8 +1,10 @@
 package com.alexandroid.bookkeep;
 
 import androidx.annotation.IntRange;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -61,7 +63,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnAbout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(getString(R.string.app_name));
+                builder.setMessage("Designed and developed by Alex at lopezalex.com\n\n" +
+                        "Check my website for more awesome applications! ");
+                builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
 
+                    }
+                });
+                builder.setPositiveButton("Website", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //TODO: Show the website
+                        Intent intent = new Intent(MainActivity.this, WebsiteActivity.class);
+                        intent.putExtra("url", "https://www.lopezalex.com/");
+                        startActivity(intent);
+                    }
+                });
+
+                builder.create().show();
+            }
+        });
 
         Utils.getInstance();
 
