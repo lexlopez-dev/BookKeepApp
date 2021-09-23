@@ -1,116 +1,275 @@
 package com.alexandroid.bookkeep;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+
+import javax.crypto.AEADBadTagException;
 
 public class Utils {
 
+    private static final String ALL_BOOKS_KEY = "all_books";
+    private static final String ALREADY_READ_BOOKS_KEY = "already_read_books";
+    private static final String WANT_TO_READ_BOOKS_KEY = "want_to_read_books";
+    private static final String CURRENTLY_READING_BOOKS_KEY = "currently_reading_books";
+    private static final String FAVORITE_BOOKS_KEY = "favorite_books";
+
+
+
     private static Utils instance;
+    private SharedPreferences sharedPreferences;
     
-    private static ArrayList<Book> allBooks;
-    private static ArrayList<Book> alreadyReadBooks;
-    private static ArrayList<Book> wantToReadBooks;
-    private static ArrayList<Book> currentlyReadingBooks;
-    private static ArrayList<Book> favoriteBooks;
+//    private static ArrayList<Book> allBooks;
+//    private static ArrayList<Book> alreadyReadBooks;
+//    private static ArrayList<Book> wantToReadBooks;
+//    private static ArrayList<Book> currentlyReadingBooks;
+//    private static ArrayList<Book> favoriteBooks;
 
 
-    public Utils() {
-        if(null == allBooks) {
-            allBooks = new ArrayList<>();
+    public Utils(Context context) {
+
+        sharedPreferences = context.getSharedPreferences("alternate_db", Context.MODE_PRIVATE);
+
+        if(null == getAllBooks()) {
             initData();
         }
 
-        if(null == alreadyReadBooks) {
-            alreadyReadBooks = new ArrayList<>();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+
+        if(null == getAlreadyReadBooks()) {
+            editor.putString(ALREADY_READ_BOOKS_KEY, gson.toJson(new ArrayList<Book>()));
+            editor.commit();
         }
 
-        if(null == wantToReadBooks) {
-            wantToReadBooks = new ArrayList<>();
+        if(null == getWantToReadBooks()) {
+            editor.putString(WANT_TO_READ_BOOKS_KEY, gson.toJson(new ArrayList<Book>()));
+            editor.commit();
         }
 
-        if(null == currentlyReadingBooks) {
-            currentlyReadingBooks = new ArrayList<>();
+        if(null == getCurrentlyReadingBooks()) {
+            editor.putString(CURRENTLY_READING_BOOKS_KEY, gson.toJson(new ArrayList<Book>()));
+            editor.commit();
         }
 
-        if(null == favoriteBooks) {
-            favoriteBooks = new ArrayList<>();
+        if(null == getFavoriteBooks()) {
+            editor.putString(FAVORITE_BOOKS_KEY, gson.toJson(new ArrayList<Book>()));
+            editor.commit();
         }
     }
 
     private void initData() {
         //TODO: add initial data
-        allBooks.add(new Book(1, "1Q84", "Haruki Murakami", 1350, "https://images-na.ssl-images-amazon.com/images/I/71hhB1Rwk4L.jpg", "A work of maddening brilliance", "Long Description"));
-        allBooks.add(new Book(2, "The Hobbit", "J. R. R. Tolkien", 310, "https://images-na.ssl-images-amazon.com/images/I/91b0C2YNSrL.jpg", "The Hobbit, or There and Back Again is a children's fantasy novel by English author J. R. R. Tolkien.", "The Hobbit is set within Tolkien's fictional universe and follows the quest of home-loving Bilbo Baggins, the titular hobbit, to win a share of the treasure guarded by Smaug the dragon. Bilbo's journey takes him from his light-hearted, rural surroundings into more sinister territory."));
-        allBooks.add(new Book(3, "Harry Potter and the Philosopher's Stone", "\tJ. K. Rowling", 223, "https://images-na.ssl-images-amazon.com/images/I/81YOuOGFCJL.jpg", "Harry Potter and the Philosopher's Stone is a fantasy novel written by British author J. K. Rowling.", "The first novel in the Harry Potter series and Rowling's debut novel, it follows Harry Potter, a young wizard who discovers his magical heritage on his eleventh birthday, when he receives a letter of acceptance to Hogwarts School of Witchcraft and Wizardry. Harry makes close friends and a few enemies during his first year at the school, and with the help of his friends, he faces an attempted comeback by the dark wizard Lord Voldemort, who killed Harry's parents, but failed to kill Harry when he was just 15 months old."));
+
+        ArrayList<Book> books = new ArrayList<>();
+
+        books.add(new Book(1, "1Q84", "Haruki Murakami", 1350, "https://images-na.ssl-images-amazon.com/images/I/71hhB1Rwk4L.jpg", "A work of maddening brilliance", "Long Description"));
+        books.add(new Book(2, "The Hobbit", "J. R. R. Tolkien", 310, "https://images-na.ssl-images-amazon.com/images/I/91b0C2YNSrL.jpg", "The Hobbit, or There and Back Again is a children's fantasy novel by English author J. R. R. Tolkien.", "The Hobbit is set within Tolkien's fictional universe and follows the quest of home-loving Bilbo Baggins, the titular hobbit, to win a share of the treasure guarded by Smaug the dragon. Bilbo's journey takes him from his light-hearted, rural surroundings into more sinister territory."));
+        books.add(new Book(3, "Harry Potter and the Philosopher's Stone", "\tJ. K. Rowling", 223, "https://images-na.ssl-images-amazon.com/images/I/81YOuOGFCJL.jpg", "Harry Potter and the Philosopher's Stone is a fantasy novel written by British author J. K. Rowling.", "The first novel in the Harry Potter series and Rowling's debut novel, it follows Harry Potter, a young wizard who discovers his magical heritage on his eleventh birthday, when he receives a letter of acceptance to Hogwarts School of Witchcraft and Wizardry. Harry makes close friends and a few enemies during his first year at the school, and with the help of his friends, he faces an attempted comeback by the dark wizard Lord Voldemort, who killed Harry's parents, but failed to kill Harry when he was just 15 months old."));
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        editor.putString(ALL_BOOKS_KEY, gson.toJson(books));
+        editor.commit();
+
 
     }
 
-    public static Utils getInstance() {
+    public static Utils getInstance(Context context) {
         if(null != instance) {
             return instance;
         }else {
-            instance = new Utils();
+            instance = new Utils(context);
             return instance;
         }
     }
 
-    public static ArrayList<Book> getAllBooks() {
-        return allBooks;
+    public ArrayList<Book> getAllBooks() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Book>>(){}.getType();
+        ArrayList<Book> books = gson.fromJson(sharedPreferences.getString(ALL_BOOKS_KEY, null), type);
+        return books;
     }
 
-    public static ArrayList<Book> getAlreadyReadBooks() {
-        return alreadyReadBooks;
+    public ArrayList<Book> getAlreadyReadBooks() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Book>>(){}.getType();
+        ArrayList<Book> books = gson.fromJson(sharedPreferences.getString(ALREADY_READ_BOOKS_KEY, null), type);
+        return books;
     }
 
-    public static ArrayList<Book> getWantToReadBooks() {
-        return wantToReadBooks;
+    public ArrayList<Book> getWantToReadBooks() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Book>>(){}.getType();
+        ArrayList<Book> books = gson.fromJson(sharedPreferences.getString(WANT_TO_READ_BOOKS_KEY, null), type);
+        return books;
     }
 
-    public static ArrayList<Book> getCurrentlyReadingBooks() {
-        return currentlyReadingBooks;
+    public ArrayList<Book> getCurrentlyReadingBooks() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Book>>(){}.getType();
+        ArrayList<Book> books = gson.fromJson(sharedPreferences.getString(CURRENTLY_READING_BOOKS_KEY, null), type);
+        return books;
     }
 
-    public static ArrayList<Book> getFavoriteBooks() {
-        return favoriteBooks;
+    public ArrayList<Book> getFavoriteBooks() {
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Book>>(){}.getType();
+        ArrayList<Book> books = gson.fromJson(sharedPreferences.getString(FAVORITE_BOOKS_KEY, null), type);
+        return books;
     }
 
     public Book getBookById(int id) {
-        for (Book b: allBooks) {
-            if(b.getId() == id) {
-                return b;
+        ArrayList<Book> books = getAllBooks();
+        if(books != null) {
+            for (Book b: books) {
+                if(b.getId() == id) {
+                    return b;
+                }
             }
         }
         return null;
     }
 
     public boolean addToAlreadyRead (Book book) {
-        return alreadyReadBooks.add(book);
+        ArrayList<Book> books = getAlreadyReadBooks();
+        if(books != null) {
+            if(books.add(book)) {
+                Gson gson = new Gson();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove(ALREADY_READ_BOOKS_KEY);
+                editor.putString(ALREADY_READ_BOOKS_KEY, gson.toJson(books));
+                editor.commit();
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean addToWantToRead (Book book) {
-        return wantToReadBooks.add(book);
+        ArrayList<Book> books = getWantToReadBooks();
+        if(books != null) {
+            if(books.add(book)) {
+                Gson gson = new Gson();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove(WANT_TO_READ_BOOKS_KEY);
+                editor.putString(WANT_TO_READ_BOOKS_KEY, gson.toJson(books));
+                editor.commit();
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean addToCurrentlyReading (Book book) {
-        return currentlyReadingBooks.add(book);
+        ArrayList<Book> books = getCurrentlyReadingBooks();
+        if(books != null) {
+            if(books.add(book)) {
+                Gson gson = new Gson();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove(CURRENTLY_READING_BOOKS_KEY);
+                editor.putString(CURRENTLY_READING_BOOKS_KEY, gson.toJson(books));
+                editor.commit();
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean addToFavoriteBooks (Book book) {
-        return favoriteBooks.add(book);
+        ArrayList<Book> books = getFavoriteBooks();
+        if(books != null) {
+            if(books.add(book)) {
+                Gson gson = new Gson();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove(FAVORITE_BOOKS_KEY);
+                editor.putString(FAVORITE_BOOKS_KEY, gson.toJson(books));
+                editor.commit();
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean removeFromAlreadyRead(Book book) {
-        return alreadyReadBooks.remove(book);
+        ArrayList<Book> books = getAlreadyReadBooks();
+        if(books != null) {
+            for (Book b: books) {
+                if(b.getId() == book.getId()) {
+                    if(books.remove(b)) {
+                        Gson gson = new Gson();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.remove(ALREADY_READ_BOOKS_KEY);
+                        editor.putString(ALREADY_READ_BOOKS_KEY, gson.toJson(books));
+                        editor.commit();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public boolean removeFromWantToRead(Book book) {
-        return wantToReadBooks.remove(book);
+        ArrayList<Book> books = getWantToReadBooks();
+        if(books != null) {
+            for (Book b: books) {
+                if(b.getId() == book.getId()) {
+                    if(books.remove(b)) {
+                        Gson gson = new Gson();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.remove(WANT_TO_READ_BOOKS_KEY);
+                        editor.putString(WANT_TO_READ_BOOKS_KEY, gson.toJson(books));
+                        editor.commit();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public boolean removeFromCurrentlyReading(Book book) {
-        return currentlyReadingBooks.remove(book);
+        ArrayList<Book> books = getCurrentlyReadingBooks();
+        if(books != null) {
+            for (Book b: books) {
+                if(b.getId() == book.getId()) {
+                    if(books.remove(b)) {
+                        Gson gson = new Gson();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.remove(CURRENTLY_READING_BOOKS_KEY);
+                        editor.putString(CURRENTLY_READING_BOOKS_KEY, gson.toJson(books));
+                        editor.commit();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public boolean removeFromFavorites(Book book) {
-        return favoriteBooks.remove(book);
+        ArrayList<Book> books = getFavoriteBooks();
+        if(books != null) {
+            for (Book b: books) {
+                if(b.getId() == book.getId()) {
+                    if(books.remove(b)) {
+                        Gson gson = new Gson();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.remove(FAVORITE_BOOKS_KEY);
+                        editor.putString(FAVORITE_BOOKS_KEY, gson.toJson(books));
+                        editor.commit();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
